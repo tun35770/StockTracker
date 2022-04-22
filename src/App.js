@@ -48,7 +48,8 @@ function App() {
 
   return (
     <div className="container">
-      <Header onAdd={() => setShowAddStock(!showAddStock)}/>
+      <Header onAdd={() => setShowAddStock(!showAddStock)}
+              showAdd={showAddStock}/>
       {showAddStock && <AddStock onAdd={addStock}/>}
       {stocks.length > 0 ? <Stocks stocks={stocks} onDelete=
       {deleteStock} onToggle={toggleActive} /> : 'No Stocks To Show'}
