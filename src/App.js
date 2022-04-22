@@ -1,6 +1,10 @@
 import Header from './components/Header'
 import Stocks from './components/Stocks'
 import AddStock from './components/AddStock'
+import Footer from './components/Footer'
+import About from './components/About'
+import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
+
 import { useState, useEffect } from 'react'
 
 
@@ -87,14 +91,30 @@ function App() {
     )
   }
 
+  const Home = () => {
+    return(
+      <>
+        {showAddStock && <AddStock onAdd={addStock}/>}
+        {stocks.length > 0 ? <Stocks stocks={stocks} onDelete=
+          {deleteStock} onToggle={toggleActive} /> : 'No Stocks To Show'}
+      </>
+    )
+  }
+
+
   return (
-    <div className="container">
-      <Header onAdd={() => setShowAddStock(!showAddStock)}
-              showAdd={showAddStock}/>
-      {showAddStock && <AddStock onAdd={addStock}/>}
-      {stocks.length > 0 ? <Stocks stocks={stocks} onDelete=
-      {deleteStock} onToggle={toggleActive} /> : 'No Stocks To Show'}
-    </div>
+    <Router>
+      <div className="container">
+        <Header onAdd={() => setShowAddStock(!showAddStock)}
+                showAdd={showAddStock}/>
+        
+        <Routes>
+          <Route exact path='/' element={<Home />}/>
+          <Route path='/about' element={<About />} />
+        </Routes>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
