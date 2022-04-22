@@ -24,11 +24,18 @@ function App() {
     }
 ])
 
+  //Delete Stock
+  const deleteStock = (id) => {
+    setStocks(stocks.filter((stock) => 
+      stock.id !== id
+    ))
+  }
 
   return (
     <div className="container">
       <Header />
-      <Stocks stocks={stocks}/>
+      {stocks.length > 0 ? <Stocks stocks={stocks} onDelete=
+      {deleteStock} /> : 'No Stocks To Show'}
     </div>
   );
 }
