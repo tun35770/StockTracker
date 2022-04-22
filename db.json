@@ -1,0 +1,25 @@
+{
+  "stocks": [
+    {
+      "id": 1,
+      "text": "AAPL",
+      "price": "$109.27",
+      "active": true,
+      "reminder": false
+    },
+    {
+      "text": "BTC",
+      "price": "$39,466.51",
+      "active": true,
+      "id": 3,
+      "reminder": true
+    },
+    {
+      "text": "FB",
+      "price": "$217.98",
+      "active": true,
+      "id": 4,
+      "reminder": false
+    }
+  ]
+}
