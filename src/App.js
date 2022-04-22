@@ -1,23 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import Header from './components/Header'
+import Stocks from './components/Stocks'
+import { useState } from 'react'
 
 function App() {
+  const [stocks, setStocks] = useState([
+    {
+        id:1,
+        text: 'AAPL',
+        price: '$109.27',
+        active: true
+    },
+    {
+        id:2,
+        text: 'FB',
+        price: '$221.55',
+        active: true
+    },
+    {
+        id:3,
+        text: 'GME',
+        price: '$7.98',
+        active: true
+    }
+])
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      <Header />
+      <Stocks stocks={stocks}/>
     </div>
   );
 }
