@@ -12,16 +12,18 @@ function App() {
   const alphaVantageKey = 'JSYIR6DEN0QWF8IT'
   const stockApiUrl = `https://www.alphavantage.co/query?`
   const [showAddStock, setShowAddStock] = useState(false)
-  const [stocks, setStocks] = useState([])
+  const [stocks, setStocks] = useState(() => {
+    const storedStocks = JSON.parse(localStorage.getItem('stocks'))
+    return storedStocks || []
+  })
 
-  // useEffect(() => {
-  //   const getStocks = async () => {
-  //     const stocksFromServer = await fetchStocks()
-  //     setStocks(stocksFromServer)
-  //   }
+  //save to localStorage
+  useEffect(() => {
+    localStorage.setItem('stocks', JSON.stringify(stocks))
 
-  //   getStocks()
-  // }, [])
+    //getStocks()
+  }, [stocks])
+
 
   // //Fetch Stocks
   // const fetchStocks = async () => {
@@ -73,7 +75,7 @@ function App() {
     return data
   }
 
-  //Create Stock Object From API Data
+  //Create Stock Object From Crypto API Data
   const buildStockObjectFromCryptoData = (data) => {
     let obj = data['Realtime Currency Exchange Rate']
     if(!obj){
@@ -95,6 +97,7 @@ function App() {
     return stock
   }
 
+  //Create Stock Object From Stock API Data
   const buildStockObjectFromStockData = (data) =>{
     let obj = data['Global Quote']
     if(!obj){
