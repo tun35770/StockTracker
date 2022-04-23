@@ -5,17 +5,21 @@ import Footer from './components/Footer'
 import About from './components/About'
 import {BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 
 function App() {
   const alphaVantageKey = 'JSYIR6DEN0QWF8IT'
   const stockApiUrl = `https://www.alphavantage.co/query?`
   const [showAddStock, setShowAddStock] = useState(false)
-  const [stocks, setStocks] = useState(() => {
+  const [stocks, setStocks] = useState([])
+  const stocksRef = useRef({})
+  stocksRef.current = stocks
+
+  useEffect(() => {
     const storedStocks = JSON.parse(localStorage.getItem('stocks'))
-    return storedStocks || []
-  })
+    updateStocks(storedStocks)
+  }, [])
 
   //save to localStorage
   useEffect(() => {
@@ -36,8 +40,8 @@ function App() {
   //Set a Stock's ID
   const getNewStockID = () => {
     let newID = 0;
-    if(stocks.length > 0)
-      newID = stocks[stocks.length-1].id + 1
+    if(stocksRef.current.length > 0)
+      newID = stocksRef.current[stocksRef.current.length-1].id + 1
 
     return newID;
   }
@@ -122,6 +126,14 @@ function App() {
     return stock
   }
 
+  //Update saved stocks
+  const updateStocks = async (storedStocks) => {
+    for(let i = 0; i < storedStocks.length; i++){
+        await addStock(storedStocks[i])
+    }
+
+  }
+
   //Add Stock
   const addStock = async (stock) => {
     if(tickerIncluded(stock)){
@@ -131,7 +143,7 @@ function App() {
     let data = await fetchStockDataFromAPI(stock)
     let stockObj
     //Stock
-    if(data['Global Quote']['01. symbol']){
+    if(data['Global Quote'].hasOwnProperty('01. symbol')){
       stockObj = buildStockObjectFromStockData(data)
     }
     //Crypto
@@ -143,7 +155,7 @@ function App() {
     
 
     if(stockObj)
-      setStocks([...stocks, stockObj])
+      setStocks([...stocksRef.current, stockObj])
     else
       alert("Failed to fetch data")
 
