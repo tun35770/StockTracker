@@ -40,6 +40,17 @@ function App() {
     return newID;
   }
 
+  //Check if stock is already added
+  const tickerIncluded = (stock) => {
+    let flag = false
+    stocks.forEach(thisStock => {
+      if(stock.ticker === thisStock.ticker)
+        flag = true
+        return
+    })
+    return flag
+  }
+
   //Fetch Stock
   const fetchStockDataFromAPI = async (stock) => {
     const url = `${stockApiUrl}function=GLOBAL_QUOTE&symbol=${stock.ticker}&apikey=${alphaVantageKey}`
@@ -107,6 +118,10 @@ function App() {
 
   //Add Stock
   const addStock = async (stock) => {
+    if(tickerIncluded(stock)){
+      alert("Stock/Crypto is already added")
+      return
+    }
     let data = await fetchStockDataFromAPI(stock)
     let stockObj
     //Stock
