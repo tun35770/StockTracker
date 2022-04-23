@@ -9,47 +9,122 @@ import { useState, useEffect } from 'react'
 
 
 function App() {
+  const alphaVantageKey = 'JSYIR6DEN0QWF8IT'
+  const stockApiUrl = `https://www.alphavantage.co/query?`
   const [showAddStock, setShowAddStock] = useState(false)
   const [stocks, setStocks] = useState([])
 
-  useEffect(() => {
-    const getStocks = async () => {
-      const stocksFromServer = await fetchStocks()
-      setStocks(stocksFromServer)
-    }
+  // useEffect(() => {
+  //   const getStocks = async () => {
+  //     const stocksFromServer = await fetchStocks()
+  //     setStocks(stocksFromServer)
+  //   }
 
-    getStocks()
-  }, [])
+  //   getStocks()
+  // }, [])
 
-  //Fetch Stocks
-  const fetchStocks = async () => {
-    const res = await fetch('http://localhost:5000/stocks')
-    const data = await res.json()
+  // //Fetch Stocks
+  // const fetchStocks = async () => {
+  //   const res = await fetch('http://localhost:5000/stocks')
+  //   const data = await res.json()
     
+  //   return data
+  // }
+
+  //Set a Stock's ID
+  const getNewStockID = () => {
+    let newID = 0;
+    if(stocks.length > 0)
+      newID = stocks[stocks.length-1].id + 1
+
+    return newID;
+  }
+
+  //Fetch Stock
+  const fetchStockDataFromAPI = async (stock) => {
+    const url = `${stockApiUrl}function=GLOBAL_QUOTE&symbol=${stock.ticker}&apikey=${alphaVantageKey}`
+    const res = await fetch(url)
+    const data = await res.json()
+
+    console.log(url)
+    console.log(data)
     return data
   }
 
-   //Fetch Stock
-   const fetchStock = async (id) => {
-    const res = await fetch(`http://localhost:5000/stocks/${id}`)
+  //Fetch Crypto
+  const fetchCryptoDataFromAPI = async (stock) => {
+    const url = `${stockApiUrl}function=CURRENCY_EXCHANGE_RATE&from_currency=${stock.ticker}&to_currency=USD&apikey=${alphaVantageKey}`
+    const res = await fetch(url)
     const data = await res.json()
     
+    console.log(url)
+    console.log(data)
     return data
+  }
+
+  //Create Stock Object From API Data
+  const buildStockObjectFromCryptoData = (data) => {
+    let obj = data['Realtime Currency Exchange Rate']
+    if(!obj){
+      return
+    }
+
+    let from = obj['1. From_Currency Code']
+    let formattedPrice = parseFloat(obj['5. Exchange Rate']).toFixed(4)
+    let date = obj['6. Last Refreshed']
+
+    
+    const stock = {
+      id: getNewStockID(),
+      ticker: from,
+      price: `$${formattedPrice}`,
+      date: date
+    }
+
+    return stock
+  }
+
+  const buildStockObjectFromStockData = (data) =>{
+    let obj = data['Global Quote']
+    if(!obj){
+      return
+    }
+
+    let symbol = obj['01. symbol']
+    let formattedPrice = parseFloat(obj['05. price']).toFixed(2)
+    let date = obj['07. latest trading day']
+
+    
+    const stock = {
+      id: getNewStockID(),
+      ticker: symbol,
+      price: `$${formattedPrice}`,
+      date: date
+    }
+
+    return stock
   }
 
   //Add Stock
   const addStock = async (stock) => {
-    const res = await fetch('http://localhost:5000/stocks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(stock)
-    })
+    let data = await fetchStockDataFromAPI(stock)
+    let stockObj
+    //Stock
+    if(data['Global Quote']['01. symbol']){
+      stockObj = buildStockObjectFromStockData(data)
+    }
+    //Crypto
+    else{
+      data = await fetchCryptoDataFromAPI(stock)
+      if(!data['Error Message'])
+        stockObj = buildStockObjectFromCryptoData(data)
+    }
+    
 
-    const data = await res.json()
-
-    setStocks([...stocks, data])
+    if(stockObj)
+      setStocks([...stocks, stockObj])
+    else
+      alert("Failed to fetch data")
 
     // const id = Math.floor(Math.random() * 10000) + 1
     // const newStock = { id, ...stock }
@@ -58,45 +133,20 @@ function App() {
 
   //Delete Stock
   const deleteStock = async (id) => {
-    await fetch(`http://localhost:5000/stocks/${id}`, {
-      method: 'DELETE'
-    })
 
     setStocks(stocks.filter((stock) => 
       stock.id !== id
     ))
   }
 
-  //Toggle Active Status
-  const toggleActive = async (id) => {
-    const stockToToggle = await fetchStock(id)
-    const updatedStock = { ...stockToToggle,
-                          active: !stockToToggle.active}
 
-                          const res = await fetch(`http://localhost:5000/stocks/${id}`,{
-                          method: 'PUT',
-                          headers: {
-                            'Content-Type': 'application/json'
-                          },
-                          body: JSON.stringify(updatedStock)
-                        })
-
-
-    const data = await res.json()
-
-    setStocks(
-      stocks.map((stock => 
-        stock.id === id ? { ...stock, active: data.active} : stock)
-      )
-    )
-  }
 
   const Home = () => {
     return(
       <>
         {showAddStock && <AddStock onAdd={addStock}/>}
         {stocks.length > 0 ? <Stocks stocks={stocks} onDelete=
-          {deleteStock} onToggle={toggleActive} /> : 'No Stocks To Show'}
+          {deleteStock} /> : 'No Stocks To Show'}
       </>
     )
   }
