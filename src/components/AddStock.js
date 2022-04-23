@@ -2,8 +2,6 @@ import { useState } from 'react'
 
 const AddStock = ({ onAdd }) => {
     const [ticker, setTicker] = useState('')
-    const [price, setPrice] = useState('')
-    const [date, setDate] = useState('')
 
     const onSubmit = (e) => {
         e.preventDefault()
@@ -16,8 +14,6 @@ const AddStock = ({ onAdd }) => {
         onAdd({ ticker })
 
         setTicker('')
-        setPrice('')
-        setDate('')
     }
 
     return (

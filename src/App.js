@@ -107,13 +107,16 @@ function App() {
     let symbol = obj['01. symbol']
     let formattedPrice = parseFloat(obj['05. price']).toFixed(2)
     let date = obj['07. latest trading day']
+    let change = obj['10. change percent']
+    let parsedChange = parseFloat(change.replace('%', '')).toFixed(2)
 
-    
     const stock = {
       id: getNewStockID(),
       ticker: symbol,
       price: `$${formattedPrice}`,
-      date: date
+      date: date,
+      change: parsedChange,
+      formattedChange: `${parsedChange > 0 ? 'Up ' : parsedChange < 0 ? 'Down ' : ''}${parsedChange}%`
     }
 
     return stock

@@ -65,6 +65,14 @@ body {
   border-left: 5px solid green;
 }
 
+.stock.increase {
+  background-color: rgba(37, 133, 37, 0.35);
+}
+
+.stock.decrease {
+  background-color: rgba(231, 67, 67, 0.35);
+}
+
 .stock h3 {
   display: flex;
   align-items: center;
