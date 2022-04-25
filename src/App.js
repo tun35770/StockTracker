@@ -50,7 +50,10 @@ function App() {
         s = s.slice(0, i)
       else break
     }
-    return parseFloat(s).toFixed(2)
+
+    
+    const digits = Math.max(2, s.split('.')[1].length)
+    return parseFloat(s).toFixed(digits)
   }
 
   //Set a Stock's ID
@@ -104,9 +107,11 @@ function App() {
 
     let from = obj['1. From_Currency Code']
     let formattedPrice = parseFloat(obj['5. Exchange Rate']).toFixed(4)
+    console.log(formattedPrice)
     formattedPrice = trimZeros(formattedPrice)
     let date = obj['6. Last Refreshed']
     let localDate = new Date(date)
+    
     
     const stock = {
       id: getNewStockID(),
