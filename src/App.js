@@ -107,8 +107,6 @@ function App() {
 
     let from = obj['1. From_Currency Code']
     let formattedPrice = parseFloat(obj['5. Exchange Rate']).toFixed(4)
-    console.log(formattedPrice)
-    formattedPrice = trimZeros(formattedPrice)
     let date = obj['6. Last Refreshed']
     let localDate = new Date(date)
     
@@ -117,7 +115,7 @@ function App() {
       id: getNewStockID(),
       ticker: from,
       price: formattedPrice,
-      formattedPrice: `$${formattedPrice}`,
+      formattedPrice: `$${trimZeros(formattedPrice)}`,
       date: localDate.toString(),
       autoUpdate: false,
       type: 'crypto'
@@ -247,7 +245,9 @@ function App() {
         }
       }
     }
-    setTimeout(() => {autoUpdateStocks(index+1)}, (autoStocks < 5 ? 30000 : 15000))  //wait 12 seconds for next fetch
+    setTimeout(() => {autoUpdateStocks(index+1)}, (stocksRef.current.length > 0 
+                      && !stocksRef.current[index].autoUpdate ? 0 
+                      : autoStocks < 5 ? 30000 : 15000))  //wait 12 seconds for next fetch
   }
 
   const Home = () => {
