@@ -111,9 +111,11 @@ function App() {
     const stock = {
       id: getNewStockID(),
       ticker: from,
-      price: `$${formattedPrice}`,
+      price: formattedPrice,
+      formattedPrice: `$${formattedPrice}`,
       date: localDate.toString(),
-      autoUpdate: false
+      autoUpdate: false,
+      type: 'crypto'
     }
 
     return stock
@@ -137,12 +139,14 @@ function App() {
     const stock = {
       id: getNewStockID(),
       ticker: symbol,
-      price: `$${formattedPrice}`,
+      price: formattedPrice,
+      formattedPrice: `$${formattedPrice}`,
       date: date,
       change: parsedChange,
       changePercent: parsedChangePercent,
-      formattedChangePercent: `${parsedChange > 0 ? 'Up $' : parsedChange < 0 ? 'Down $' : ''}${parsedChange} | ${parsedChangePercent}%`,
-      autoUpdate: false
+      formattedChange: `${parsedChange > 0 ? 'Up $' : parsedChange < 0 ? 'Down $' : ''}${Math.abs(parsedChange)} | ${parsedChangePercent}%`,
+      autoUpdate: false,
+      type: 'stock'
     }
 
     return stock
@@ -208,6 +212,16 @@ function App() {
   //Automatically update stocks
   const autoUpdateStocks = async (index) => {
  
+    let autoStocks = 0;
+    for(let i = 0; i < stocks.length; i++){
+      if(stocks[i].autoUpdate){
+        if(stocks[i].type === 'stock')
+          autoStocks++
+        else
+          autoStocks += 2
+      }
+    }
+
     if(stocksRef.current.length > 0){
       if(index === stocksRef.current.length)
         index = 0;
@@ -217,20 +231,18 @@ function App() {
         if(stockObj){
           let tempStocks = [...stocksRef.current]
           stockObj.autoUpdate = true;
+          if(tempStocks[index].type === 'crypto'){
+            stockObj.change = (stockObj.price - tempStocks[index].price).toFixed(4)
+            stockObj.change = trimZeros(stockObj.change)
+            stockObj.changePercent = (stockObj.change / tempStocks[index].price).toFixed(2)
+            
+          }
           tempStocks[index] = stockObj
           setStocks(tempStocks);
-          // stocksRef.current[index].price = stockObj.price;
-          // stocksRef.current[index].date = stockObj.date;
-
-          // if(stockObj.hasOwnProperty('change'))
-          // stocksRef.current[index].change = stockObj.change
-
-          // if(stockObj.hasOwnProperty('formattedChange'))
-          // stocksRef.current[index].formattedChange = stockObj.formattedChange
         }
       }
     }
-    setTimeout(() => {autoUpdateStocks(index+1)}, 15000)  //wait 12 seconds for next fetch
+    setTimeout(() => {autoUpdateStocks(index+1)}, (autoStocks < 5 ? 30000 : 15000))  //wait 12 seconds for next fetch
   }
 
   const Home = () => {
