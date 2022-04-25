@@ -18,7 +18,11 @@ function App() {
 
   useEffect(() => {
     const storedStocks = JSON.parse(localStorage.getItem('stocks'))
-    updateStocks(storedStocks)
+    updateStocks(storedStocks).then(() => {
+      autoUpdateStocks(0)
+    })
+
+    
   }, [])
 
   //save to localStorage
@@ -105,15 +109,14 @@ function App() {
     let formattedPrice = parseFloat(obj['5. Exchange Rate']).toFixed(4)
     formattedPrice = trimZeros(formattedPrice)
     let date = obj['6. Last Refreshed']
-
     let localDate = new Date(date)
-    console.log(localDate)
     
     const stock = {
       id: getNewStockID(),
       ticker: from,
       price: `$${formattedPrice}`,
-      date: localDate.toString()
+      date: localDate.toString(),
+      autoUpdate: false
     }
 
     return stock
@@ -138,7 +141,8 @@ function App() {
       price: `$${formattedPrice}`,
       date: date,
       change: parsedChange,
-      formattedChange: `${parsedChange > 0 ? 'Up ' : parsedChange < 0 ? 'Down ' : ''}${parsedChange}%`
+      formattedChange: `${parsedChange > 0 ? 'Up ' : parsedChange < 0 ? 'Down ' : ''}${parsedChange}%`,
+      autoUpdate: false
     }
 
     return stock
@@ -152,16 +156,12 @@ function App() {
 
   }
 
-  //Add Stock
-  const addStock = async (stock) => {
-    if(tickerIncluded(stock)){
-      alert("Stock/Crypto is already added")
-      return
-    }
+  const getStockData = async(stock) => {
+    
     let data = await fetchStockDataFromAPI(stock)
     let stockObj
     //Stock
-    if(data['Global Quote'].hasOwnProperty('01. symbol')){
+    if(data['Global Quote'] && data['Global Quote'].hasOwnProperty('01. symbol')){
       stockObj = buildStockObjectFromStockData(data)
     }
     //Crypto
@@ -170,8 +170,18 @@ function App() {
       if(!data['Error Message'])
         stockObj = buildStockObjectFromCryptoData(data)
     }
-    
 
+    return stockObj
+  }
+
+  //Add Stock
+  const addStock = async (stock) => {
+    if(tickerIncluded(stock)){
+      alert("Stock/Crypto is already added")
+      return
+    }
+    const stockObj = await getStockData(stock)
+    
     if(stockObj)
       setStocks([...stocksRef.current, stockObj])
     else
@@ -185,19 +195,50 @@ function App() {
   //Delete Stock
   const deleteStock = async (id) => {
 
-    setStocks(stocks.filter((stock) => 
+    setStocks(stocksRef.current.filter((stock) => 
       stock.id !== id
     ))
   }
 
+  //invert autoUpdate field
+  const setAutoUpdate = (id) => {
+    setStocks(stocks.map(stock => stock.id === id ? {...stock, autoUpdate: !stock.autoUpdate} : stock))
+  }
 
+  //Automatically update stocks
+  const autoUpdateStocks = async (index) => {
+ 
+    if(stocksRef.current.length > 0){
+      if(index === stocksRef.current.length)
+        index = 0;
+
+      if(stocksRef.current[index].autoUpdate){
+        const stockObj = await getStockData(stocksRef.current[index])
+        if(stockObj){
+          let tempStocks = [...stocksRef.current]
+          stockObj.autoUpdate = true;
+          tempStocks[index] = stockObj
+          setStocks(tempStocks);
+          // stocksRef.current[index].price = stockObj.price;
+          // stocksRef.current[index].date = stockObj.date;
+
+          // if(stockObj.hasOwnProperty('change'))
+          // stocksRef.current[index].change = stockObj.change
+
+          // if(stockObj.hasOwnProperty('formattedChange'))
+          // stocksRef.current[index].formattedChange = stockObj.formattedChange
+        }
+      }
+    }
+    setTimeout(() => {autoUpdateStocks(index+1)}, 15000)  //wait 12 seconds for next fetch
+  }
 
   const Home = () => {
     return(
       <>
         {showAddStock && <AddStock onAdd={addStock}/>}
         {stocks.length > 0 ? <Stocks stocks={stocks} onDelete=
-          {deleteStock} /> : 'No Stocks To Show'}
+          {deleteStock} onDoubleClick = {setAutoUpdate}/> : 'No Stocks To Show'}
       </>
     )
   }

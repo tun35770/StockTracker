@@ -1,13 +1,14 @@
  import Stock from './Stock'
 
-const Stocks = ({ stocks, onDelete }) => {
+const Stocks = ({ stocks, onDelete, onDoubleClick }) => {
     
   return (
     <>
         {stocks.map((stock) => 
             <Stock key={stock.id} 
                     stock={stock} 
-                    onDelete={onDelete} />)
+                    onDelete={onDelete} 
+                    onDoubleClick = {onDoubleClick} />)
         }
     </>
   )
