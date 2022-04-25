@@ -44,16 +44,13 @@ function App() {
   //Trims the zeros off of currency
   const trimZeros = (num) => {
     let s = num.toString();
-    //Only two digits after decimal; dont trim any zeros
-    if(s.charAt(s.length-3) === '.')
-      return num
 
     for(let i = s.length-1; i >= 0; i--){
       if(s.charAt(i) === '0')
         s = s.slice(0, i)
       else break
     }
-    return parseFloat(s)
+    return parseFloat(s).toFixed(2)
   }
 
   //Set a Stock's ID
@@ -132,8 +129,10 @@ function App() {
     let symbol = obj['01. symbol']
     let formattedPrice = parseFloat(obj['05. price']).toFixed(2)
     let date = obj['07. latest trading day']
-    let change = obj['10. change percent']
-    let parsedChange = parseFloat(change.replace('%', '')).toFixed(2)
+    let change = obj['09. change']
+    let parsedChange = parseFloat(change).toFixed(2)
+    let changePercent = obj['10. change percent']
+    let parsedChangePercent = parseFloat(changePercent.replace('%', '')).toFixed(2)
 
     const stock = {
       id: getNewStockID(),
@@ -141,7 +140,8 @@ function App() {
       price: `$${formattedPrice}`,
       date: date,
       change: parsedChange,
-      formattedChange: `${parsedChange > 0 ? 'Up ' : parsedChange < 0 ? 'Down ' : ''}${parsedChange}%`,
+      changePercent: parsedChangePercent,
+      formattedChangePercent: `${parsedChange > 0 ? 'Up $' : parsedChange < 0 ? 'Down $' : ''}${parsedChange} | ${parsedChangePercent}%`,
       autoUpdate: false
     }
 
@@ -242,7 +242,6 @@ function App() {
       </>
     )
   }
-
 
   return (
     <Router>
