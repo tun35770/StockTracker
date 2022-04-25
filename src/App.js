@@ -37,6 +37,21 @@ function App() {
   //   return data
   // }
 
+  //Trims the zeros off of currency
+  const trimZeros = (num) => {
+    let s = num.toString();
+    //Only two digits after decimal; dont trim any zeros
+    if(s.charAt(s.length-3) === '.')
+      return num
+
+    for(let i = s.length-1; i >= 0; i--){
+      if(s.charAt(i) === '0')
+        s = s.slice(0, i)
+      else break
+    }
+    return parseFloat(s)
+  }
+
   //Set a Stock's ID
   const getNewStockID = () => {
     let newID = 0;
@@ -88,14 +103,17 @@ function App() {
 
     let from = obj['1. From_Currency Code']
     let formattedPrice = parseFloat(obj['5. Exchange Rate']).toFixed(4)
+    formattedPrice = trimZeros(formattedPrice)
     let date = obj['6. Last Refreshed']
 
+    let localDate = new Date(date)
+    console.log(localDate)
     
     const stock = {
       id: getNewStockID(),
       ticker: from,
       price: `$${formattedPrice}`,
-      date: date
+      date: localDate.toString()
     }
 
     return stock
