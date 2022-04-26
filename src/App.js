@@ -11,6 +11,8 @@ import { useState, useEffect, useRef } from 'react'
 function App() {
   const alphaVantageKey = 'JSYIR6DEN0QWF8IT'
   const stockApiUrl = `https://www.alphavantage.co/query?`
+  const cryptoApiUrl = 'https://api.coingecko.com/api/v3/simple/price?ids='
+  const cryptoSearchApiUrl = 'https://api.coingecko.com/api/v3/search?query='
   const [showAddStock, setShowAddStock] = useState(false)
   const [stocks, setStocks] = useState([])
   const stocksRef = useRef({})
@@ -89,39 +91,46 @@ function App() {
 
   //Fetch Crypto
   const fetchCryptoDataFromAPI = async (stock) => {
-    const url = `${stockApiUrl}function=CURRENCY_EXCHANGE_RATE&from_currency=${stock.ticker}&to_currency=USD&apikey=${alphaVantageKey}`
+    const searchUrl = `${cryptoSearchApiUrl}${stock.ticker}`
+    const searchRes = await fetch(searchUrl)
+    const searchData = await searchRes.json()
+
+    const cryptoId = searchData['coins'][0].id
+    const url = `${cryptoApiUrl}${cryptoId}&vs_currencies=usd&include_last_updated_at=true`
     const res = await fetch(url)
     const data = await res.json()
-    
+    data.ticker = stock.ticker;
+
     console.log(url)
     console.log(data)
     return data
   }
 
   //Create Stock Object From Crypto API Data
-  const buildStockObjectFromCryptoData = (data) => {
-    let obj = data['Realtime Currency Exchange Rate']
+  const buildStockObjectFromCryptoData = (data, stock) => {
+    const cryptoName = Object.keys(data)[0]
+    let obj = data[cryptoName]
     if(!obj){
       return
     }
 
-    let from = obj['1. From_Currency Code']
-    let formattedPrice = parseFloat(obj['5. Exchange Rate']).toFixed(4)
-    let date = obj['6. Last Refreshed']
-    let localDate = new Date(date)
+    let formattedPrice = parseFloat(obj['usd']).toFixed(4)
+    let date = obj['last_updated_at']
+    let localDate = new Date(date*1000)
     
     
-    const stock = {
+    const stockObj = {
       id: getNewStockID(),
-      ticker: from,
+      ticker: stock.ticker.toUpperCase(),
+      name: cryptoName.toUpperCase(),
       price: formattedPrice,
       formattedPrice: `$${trimZeros(formattedPrice)}`,
       date: localDate.toString(),
       autoUpdate: false,
-      type: 'crypto'
+      isCrypto: true
     }
 
-    return stock
+    return stockObj
   }
 
   //Create Stock Object From Stock API Data
@@ -149,7 +158,7 @@ function App() {
       changePercent: parsedChangePercent,
       formattedChange: `${parsedChange > 0 ? 'Up $' : parsedChange < 0 ? 'Down $' : ''}${Math.abs(parsedChange)} | ${parsedChangePercent}%`,
       autoUpdate: false,
-      type: 'stock'
+      isCrypto: false
     }
 
     return stock
@@ -165,17 +174,23 @@ function App() {
 
   const getStockData = async(stock) => {
     
-    let data = await fetchStockDataFromAPI(stock)
-    let stockObj
-    //Stock
-    if(data['Global Quote'] && data['Global Quote'].hasOwnProperty('01. symbol')){
-      stockObj = buildStockObjectFromStockData(data)
-    }
+    let data, stockObj;
+
     //Crypto
-    else{
+    if(stock.isCrypto){
       data = await fetchCryptoDataFromAPI(stock)
-      if(!data['Error Message'])
-        stockObj = buildStockObjectFromCryptoData(data)
+     
+      if(!(Object.keys(data).length === 0)){
+        stockObj = buildStockObjectFromCryptoData(data, stock)
+      }
+    }
+    
+    //Stock
+    else {
+      data = await fetchStockDataFromAPI(stock)
+      if(data['Global Quote'] && data['Global Quote'].hasOwnProperty('01. symbol')){
+        stockObj = buildStockObjectFromStockData(data)
+      }
     }
 
     return stockObj
@@ -187,6 +202,7 @@ function App() {
       alert("Stock/Crypto is already added")
       return
     }
+
     const stockObj = await getStockData(stock)
     
     if(stockObj)
@@ -214,16 +230,6 @@ function App() {
 
   //Automatically update stocks
   const autoUpdateStocks = async (index) => {
- 
-    let autoStocks = 0;
-    for(let i = 0; i < stocks.length; i++){
-      if(stocks[i].autoUpdate){
-        if(stocks[i].type === 'stock')
-          autoStocks++
-        else
-          autoStocks += 2
-      }
-    }
 
     if(stocksRef.current.length > 0){
       if(index === stocksRef.current.length)
@@ -234,20 +240,20 @@ function App() {
         if(stockObj){
           let tempStocks = [...stocksRef.current]
           stockObj.autoUpdate = true;
-          if(tempStocks[index].type === 'crypto'){
+          if(tempStocks[index].isCrypto){
             stockObj.change = (stockObj.price - tempStocks[index].price).toFixed(4)
             stockObj.change = trimZeros(stockObj.change)
             stockObj.changePercent = (stockObj.change / tempStocks[index].price).toFixed(2)
-            
           }
+          stockObj.isCrypto = tempStocks[index].isCrypto
+          stockObj.id = tempStocks[index].id
+
           tempStocks[index] = stockObj
           setStocks(tempStocks);
         }
       }
     }
-    setTimeout(() => {autoUpdateStocks(index+1)}, (stocksRef.current.length > 0 
-                      && !stocksRef.current[index].autoUpdate ? 0 
-                      : autoStocks < 5 ? 30000 : 15000))  //wait 12 seconds for next fetch
+    setTimeout(() => {autoUpdateStocks(index+1)}, 10000)  //wait 10 seconds for next fetch
   }
 
   const Home = () => {
