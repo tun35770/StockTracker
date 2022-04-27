@@ -11,7 +11,7 @@ const Stock = ({ stock, onDelete, onDoubleClick }) => {
             onClick={() => onDelete(stock.id)}/></h3>
         <h2>{'$' + stock.price}</h2>
         <p>{stock.date}</p>
-        <p>{stock.time}</p>
+        <p>{stock.time ? ('Last Updated ' + stock.time) : ''}</p>
         <p>{stock.formattedChange}</p>
     </div>
   )
