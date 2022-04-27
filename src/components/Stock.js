@@ -9,8 +9,9 @@ const Stock = ({ stock, onDelete, onDoubleClick }) => {
         <h3>{stock.ticker} <FaTimes style={{color: 'red', 
                                         cursor: 'pointer' }} 
             onClick={() => onDelete(stock.id)}/></h3>
-        <h2>{stock.formattedPrice}</h2>
+        <h2>{'$' + stock.price}</h2>
         <p>{stock.date}</p>
+        <p>{stock.time}</p>
         <p>{stock.formattedChange}</p>
     </div>
   )

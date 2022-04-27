@@ -58,6 +58,18 @@ function App() {
     return parseFloat(s).toFixed(digits)
   }
 
+  //format the time
+  const formatTime = (date) => {
+    let hours = date.getHours()
+    hours = hours < 10 ? '0' + hours : hours
+    let minutes = date.getMinutes()
+    minutes = minutes < 10 ? '0' + minutes : minutes
+    let seconds = date.getSeconds()
+    seconds = seconds < 10 ? '0' + seconds : seconds
+
+    return hours + ':' + minutes + ':' + seconds
+  }
+
   //Set a Stock's ID
   const getNewStockID = () => {
     let newID = 0;
@@ -117,15 +129,19 @@ function App() {
     let formattedPrice = parseFloat(obj['usd']).toFixed(4)
     let date = obj['last_updated_at']
     let localDate = new Date(date*1000)
-    
-    
+    let formattedDate = localDate.getFullYear() + '-' + (
+                (localDate.getMonth()+1) < 10 ? '0' + (localDate.getMonth()+1) 
+                : (localDate.getMonth()+1)) + '-' + localDate.getDate()
+               
+    let formattedTime =  formatTime(localDate)
+
     const stockObj = {
       id: getNewStockID(),
       ticker: stock.ticker.toUpperCase(),
       name: cryptoName.toUpperCase(),
-      price: formattedPrice,
-      formattedPrice: `$${trimZeros(formattedPrice)}`,
-      date: localDate.toString(),
+      price: trimZeros(formattedPrice),
+      date: formattedDate,
+      time: formattedTime,
       autoUpdate: false,
       isCrypto: true
     }
@@ -152,7 +168,6 @@ function App() {
       id: getNewStockID(),
       ticker: symbol,
       price: formattedPrice,
-      formattedPrice: `$${formattedPrice}`,
       date: date,
       change: parsedChange,
       changePercent: parsedChangePercent,
@@ -235,7 +250,7 @@ function App() {
       if(index === stocksRef.current.length)
         index = 0;
 
-      if(stocksRef.current[index].autoUpdate){
+      if(stocksRef.current[index] && stocksRef.current[index].autoUpdate){
         const stockObj = await getStockData(stocksRef.current[index])
         if(stockObj){
           let tempStocks = [...stocksRef.current]
