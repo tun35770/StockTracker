@@ -4,12 +4,12 @@ import AddStock from './components/AddStock'
 import Footer from './components/Footer'
 import About from './components/About'
 import {BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-
 import { useState, useEffect, useRef } from 'react'
 
 function App() {
-  const alphaVantageKey = process.env.STOCK_API_KEY
-  const stockApiUrl = `https://www.alphavantage.co/query?`
+  
+  const stockAPIKey = process.env.REACT_APP_STOCK_API_KEY
+  const stockApiUrl = `https://www.finnhub.io/api/v1/quote?`
   const cryptoApiUrl = 'https://api.coingecko.com/api/v3/simple/price?ids='
   const cryptoSearchApiUrl = 'https://api.coingecko.com/api/v3/search?query='
   const [showAddStock, setShowAddStock] = useState(false)
@@ -22,8 +22,6 @@ function App() {
     updateStocks(storedStocks).then(() => {
       autoUpdateStocks(0)
     })
-
-    
   }, [])
 
   //save to localStorage
@@ -55,6 +53,17 @@ function App() {
     
     const digits = Math.max(2, s.split('.')[1].length)
     return parseFloat(s).toFixed(digits)
+  }
+
+  //format date
+  const formatDate = (date) => {
+    let year = date.getFullYear()
+    let month = date.getMonth() + 1
+    month = month < 10 ? '0' + month : month
+    let day = date.getDate()
+    day = day < 10 ? '0' + day : day
+
+    return month + '/' + day + '/' + year
   }
 
   //format the time
@@ -91,8 +100,11 @@ function App() {
 
   //Fetch Stock
   const fetchStockDataFromAPI = async (stock) => {
-    const url = `${stockApiUrl}function=GLOBAL_QUOTE&symbol=${stock.ticker}&apikey=${alphaVantageKey}`
-    const res = await fetch(url)
+    const url = stockApiUrl
+    const res = await fetch(url + new URLSearchParams({
+      symbol: stock.ticker.toUpperCase(),
+      token: stockAPIKey
+    }))
     const data = await res.json()
 
     console.log(url)
@@ -128,9 +140,7 @@ function App() {
     let formattedPrice = parseFloat(obj['usd']).toFixed(4)
     let date = obj['last_updated_at']
     let localDate = new Date(date*1000)
-    let formattedDate = localDate.getFullYear() + '-' + (
-                (localDate.getMonth()+1) < 10 ? '0' + (localDate.getMonth()+1) 
-                : (localDate.getMonth()+1)) + '-' + localDate.getDate()
+    let formattedDate = formatDate(localDate)
                
     let formattedTime =  formatTime(localDate)
 
@@ -149,25 +159,30 @@ function App() {
   }
 
   //Create Stock Object From Stock API Data
-  const buildStockObjectFromStockData = (data) =>{
-    let obj = data['Global Quote']
+  const buildStockObjectFromStockData = (data, stock) =>{
+    let obj = data
     if(!obj){
       return
     }
 
-    let symbol = obj['01. symbol']
-    let formattedPrice = parseFloat(obj['05. price']).toFixed(2)
-    let date = obj['07. latest trading day']
-    let change = obj['09. change']
-    let parsedChange = parseFloat(change).toFixed(2)
-    let changePercent = obj['10. change percent']
-    let parsedChangePercent = parseFloat(changePercent.replace('%', '')).toFixed(2)
+    let symbol =stock.ticker.toUpperCase()
+    let formattedPrice = parseFloat(obj['c']).toFixed(2)
 
-    const stock = {
+    const now = new Date()
+    let date = formatDate(now)
+    let time = formatTime(now)
+
+    let change = obj['d']
+    let parsedChange = parseFloat(change).toFixed(2)
+    let changePercent = obj['dp']
+    let parsedChangePercent = parseFloat(changePercent).toFixed(2)
+
+    const stockObj = {
       id: getNewStockID(),
       ticker: symbol,
       price: formattedPrice,
       date: date,
+      time: time,
       change: parsedChange,
       changePercent: parsedChangePercent,
       formattedChange: `${parsedChange > 0 ? 'Up $' : parsedChange < 0 ? 'Down $' : ''}${Math.abs(parsedChange)} | ${parsedChangePercent}%`,
@@ -175,7 +190,7 @@ function App() {
       isCrypto: false
     }
 
-    return stock
+    return stockObj
   }
 
   //Update saved stocks
@@ -202,8 +217,8 @@ function App() {
     //Stock
     else {
       data = await fetchStockDataFromAPI(stock)
-      if(data['Global Quote'] && data['Global Quote'].hasOwnProperty('01. symbol')){
-        stockObj = buildStockObjectFromStockData(data)
+      if(data && data.hasOwnProperty('d')){
+        stockObj = buildStockObjectFromStockData(data, stock)
       }
     }
 
@@ -267,7 +282,10 @@ function App() {
         }
       }
     }
-    setTimeout(() => {autoUpdateStocks(index+1)}, 10000)  //wait 10 seconds for next fetch
+    const nextIndex = (index === stocksRef.current.length-1 ? 0 : index+1)
+
+
+    setTimeout(() => {autoUpdateStocks(nextIndex)}, 10000)  //wait 5 seconds for next fetch
   }
 
   const Home = () => {
