@@ -73,6 +73,14 @@ body {
   background-color: rgba(231, 67, 67, 0.35);
 }
 
+.stock.type-stock {
+  border: 0.2rem solid blue 
+}
+
+.stock.type-crypto {
+  border: 0.2rem solid orange 
+}
+
 .stock h3 {
   display: flex;
   align-items: center;
