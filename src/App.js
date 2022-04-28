@@ -7,9 +7,8 @@ import {BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
 import { useState, useEffect, useRef } from 'react'
 
-
 function App() {
-  const alphaVantageKey = 'JSYIR6DEN0QWF8IT'
+  const alphaVantageKey = process.env.STOCK_API_KEY
   const stockApiUrl = `https://www.alphavantage.co/query?`
   const cryptoApiUrl = 'https://api.coingecko.com/api/v3/simple/price?ids='
   const cryptoSearchApiUrl = 'https://api.coingecko.com/api/v3/search?query='
