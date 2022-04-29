@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom"
 
-const About = () => {
+const About = ( {homePath} ) => {
   return (
     <div>
         <h4>Verson 1.0.0</h4>
-        <Link to="/">Go Back</Link>
+        <Link to={homePath}>Go Back</Link>
     </div>
   )
 }

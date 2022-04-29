@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import About from './components/About'
 import {BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
+const HOME_PATH = window.location.pathname
 
 function App() {
   
@@ -303,11 +304,11 @@ function App() {
     <Router>
       <div className="container">
         <Header onAdd={() => setShowAddStock(!showAddStock)}
-                showAdd={showAddStock}/>
+                showAdd={showAddStock} homePath={HOME_PATH}/>
         
         <Routes>
-          <Route exact path='/' element={<Home />}/>
-          <Route path='/about' element={<About />} />
+          <Route exact path = {HOME_PATH} element={<Home />}/>
+          <Route path='/about' element={<About homePath = {HOME_PATH}/>} />
         </Routes>
         <Footer />
       </div>
