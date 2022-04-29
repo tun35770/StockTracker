@@ -195,6 +195,7 @@ function App() {
 
   //Update saved stocks
   const updateStocks = async (storedStocks) => {
+    if(!storedStocks) return
     for(let i = 0; i < storedStocks.length; i++){
         await addStock(storedStocks[i])
     }
