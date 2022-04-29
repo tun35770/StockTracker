@@ -59,10 +59,7 @@ body {
   margin: 5px;
   padding: 10px 20px;
   cursor: pointer;
-}
-
-.stock.auto-update {
-  border-left: 5px solid green;
+  width: 95%
 }
 
 .stock.increase {
@@ -74,17 +71,33 @@ body {
 }
 
 .stock.type-stock {
-  border: 0.2rem solid blue 
+  border: 5px solid rgb(81, 81, 236) 
 }
 
 .stock.type-crypto {
-  border: 0.2rem solid orange 
+  border: 5px solid orange 
 }
 
 .stock h3 {
-  display: flex;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+}
+
+.stock-container {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.auto-update-indicator {
+  width: 0.8rem;
+  height: 0.8rem;
+  background-color: rgb(31, 211, 31);
+  border-radius: 50%;
+  margin: auto;
 }
 
 .add-form {
