@@ -275,6 +275,9 @@ function App() {
             stockObj.change = (stockObj.price - tempStocks[index].price).toFixed(4)
             stockObj.change = trimZeros(stockObj.change)
             stockObj.changePercent = (stockObj.change / tempStocks[index].price).toFixed(2)
+            stockObj.formattedChange = `${stockObj.change > 0 ? 'Up $' : stockObj.change < 0 ? 'Down $' : tempStocks[index].formattedChange ? tempStocks[index].formattedChange : ''}`
+            +`${stockObj.change < 0 || stockObj.change > 0 ? Math.abs(stockObj.change) : ''}`
+            +`${stockObj.changePercent > 0 || stockObj.changePercent < 0 ? '| ' + stockObj.changePercent + '%': ''}`
           }
           stockObj.isCrypto = tempStocks[index].isCrypto
           stockObj.id = tempStocks[index].id
@@ -287,7 +290,7 @@ function App() {
     const nextIndex = (index === stocksRef.current.length-1 ? 0 : index+1)
 
 
-    setTimeout(() => {autoUpdateStocks(nextIndex)}, 10000)  //wait 5 seconds for next fetch
+    setTimeout(() => {autoUpdateStocks(nextIndex)}, 5000)  //wait 5 seconds for next fetch
   }
 
   const Home = () => {
